@@ -38,15 +38,24 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 
 public class Loader extends JFrame {
-
+	private boolean relist = false;
+	private ProgressDialog pd;
 	private int selected = -1, margin = 5;
 	private JButton importDirButton = new JButton("Import Directory"), arrangeSpritemapsButton = new JButton("Arrange Spritemaps");
-	private DefaultListModel<File> dlm = new DefaultListModel<>();
-	private JList<File> fileList = new JList<>(dlm);
+	private DefaultListModel<String> dlm = new DefaultListModel<>();
+	private JList<String> fileList = new JList<>(dlm);
 	private ArrayList<BufferedImage> images = new ArrayList<>();
 	private int imgsPerLine = 0, imgFirst = 0, imgLast = 0, xOffset = 0, yOffset = 0;
 	private JPanel rightPanel = new JPanel(new BorderLayout()), controlsPanel = new JPanel(new GridLayout(0, 1)), viewPanel = new JPanel() {
 		protected void paintComponent(java.awt.Graphics arg0) {
+			if(relist)
+			{
+				relist = false;
+				for(int i = 0; i < images.size(); i++)
+				{
+					dlm.addElement("Sprite "+i);
+				}
+			}
 			super.paintComponent(arg0);
 			arg0.setColor(Color.darkGray);
 			arg0.fillRect(0, 0, getWidth(), getHeight()); // stylish, ey?
@@ -106,7 +115,7 @@ public class Loader extends JFrame {
 					return;
 				}
 				System.out.println("Found " + dir.listFiles().length + " files");
-				File[] files = dir.listFiles(new java.io.FileFilter() {
+				final File[] files = dir.listFiles(new java.io.FileFilter() {
 
 					@Override
 					public boolean accept(File arg0) {
@@ -114,58 +123,73 @@ public class Loader extends JFrame {
 								|| arg0.getName().toLowerCase().endsWith("jpeg") || arg0.getName().toLowerCase().endsWith("gif");
 					}
 				});
+				pd = new ProgressDialog("Importing", "Importing Files", files.length);
 				System.out.println("Found " + files.length + " images");
-				Arrays.sort(files, new Comparator<File>() {
-					public int compare(File arg0, File arg1) {
-						return arg0.getName().compareTo(arg1.getName());
-					}
-				});
-				int i = 1;
-				for (File f : files) {
-					System.out.println(i++ + "/" + files.length);
-					BufferedImage a = null;
-					try {
-						a = ImageIO.read(f);
-						Dimension aDim = new Dimension(a.getWidth(), a.getHeight());
-						if (imgDimension == null)
-							imgDimension = aDim;
-						else if (imgDimension.equals(aDim)) {
-							dlm.addElement(f);
-							images.add(a);
-						} else
-							JOptionPane.showMessageDialog(Loader.this, f.getName() + " has the wrong resolution! " + aDim);
-					} catch (IOException e) {
-						JOptionPane.showMessageDialog(Loader.this, "Failed to read " + f.getName());
-						return;
+				new Thread(new Runnable() {
 
+					@Override
+					public void run() {
+						Arrays.sort(files, new Comparator<File>() {
+							public int compare(File arg0, File arg1) {
+								return arg0.getName().compareTo(arg1.getName());
+							}
+						});
+						int i = 1;
+						for (File f : files) {
+							System.out.println(i++ + "/" + files.length);
+							BufferedImage a = null;
+							try {
+								a = ImageIO.read(f);
+								Dimension aDim = new Dimension(a.getWidth(), a.getHeight());
+								if (imgDimension == null)
+									imgDimension = aDim;
+								else if (imgDimension.equals(aDim)) 
+									images.add(a);
+								else
+									JOptionPane.showMessageDialog(Loader.this, f.getName() + " has the wrong resolution! " + aDim);
+							} catch (IOException e) {
+								JOptionPane.showMessageDialog(Loader.this, "Failed to read " + f.getName());
+								return;
+
+							}
+							pd.step();
+						}
+						imgsPerLine = viewPanel.getWidth() / imgDimension.width;
+						System.out.println("Accepted " + images.size() + " images");
+						scrollbar.setMaximum(images.size() / imgsPerLine + viewPanel.getHeight() / imgDimension.height + 1);
+						System.out.println("images per line: " + imgsPerLine + "\tmaxscroll: " + scrollbar.getMaximum());
+						relist = true;
+						viewPanel.repaint();
+						arrangeSpritemapsButton.setEnabled(true);
+						pd.dispose();
 					}
-				}
-				imgsPerLine = viewPanel.getWidth() / imgDimension.width;
-				System.out.println("Accepted " + images.size() + " images");
-				scrollbar.setMaximum(images.size() / imgsPerLine + viewPanel.getHeight() / imgDimension.height + 1);
-				System.out.println("images per line: " + imgsPerLine + "\tmaxscroll: " + scrollbar.getMaximum());
-				repaint();
-				arrangeSpritemapsButton.setEnabled(true);
+				}).start();
 			}
 		});
 		viewPanel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
+				if (pd.isVisible())
+					return;
 				super.mouseReleased(arg0);
 				updateSelection(scrollbar.getValue() * imgsPerLine + (arg0.getX() - xOffset) / imgDimension.width + (arg0.getY() - yOffset)
-						/ imgDimension.height * imgsPerLine);
+						/ imgDimension.height * imgsPerLine, false);
 			}
 		});
 		fileList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent arg0) {
+				if (pd != null && pd.isVisible())
+					return;
 				super.mouseReleased(arg0);
-				updateSelection(fileList.getSelectedIndex());
+				updateSelection(fileList.getSelectedIndex(), true);
 			}
 		});
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent arg0) {
+				if (pd != null && pd.isVisible())
+					return;
 				// TODO Auto-generated method stub
 				super.componentResized(arg0);
 				if (imgDimension == null)
@@ -179,6 +203,8 @@ public class Loader extends JFrame {
 
 			@Override
 			public void adjustmentValueChanged(AdjustmentEvent arg0) {
+				if (pd != null && pd.isVisible())
+					return;
 				viewPanel.repaint();
 			}
 		});
@@ -208,9 +234,10 @@ public class Loader extends JFrame {
 		setVisible(true);
 	}
 
-	private void updateSelection(int s) {
+	private void updateSelection(int s, boolean updateView) {
 		System.out.println("selected = " + s);
 		selected = s;
+		if(updateView)
 		scrollbar.setValue(selected / imgsPerLine);
 		fileList.setSelectedIndex(selected);
 		fileList.ensureIndexIsVisible(selected);
