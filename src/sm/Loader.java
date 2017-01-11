@@ -40,8 +40,7 @@ import javax.swing.filechooser.FileFilter;
 public class Loader extends JFrame {
 
 	private int selected = -1, margin = 5;
-	private JButton importDirButton = new JButton("Import Directory"), arrangeSpritemapsButton = new JButton("Arrange Spritemaps"),
-			compressButton = new JButton("Compress"), saveButton = new JButton("Save");
+	private JButton importDirButton = new JButton("Import Directory"), arrangeSpritemapsButton = new JButton("Arrange Spritemaps");
 	private DefaultListModel<File> dlm = new DefaultListModel<>();
 	private JList<File> fileList = new JList<>(dlm);
 	private ArrayList<BufferedImage> images = new ArrayList<>();
@@ -183,13 +182,19 @@ public class Loader extends JFrame {
 				viewPanel.repaint();
 			}
 		});
+		arrangeSpritemapsButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				SpriteMapArrangeDialog smad = new SpriteMapArrangeDialog(images.size());
+				int xT = smad.getXTiles(), yT = smad.getYTiles(), num = xT * yT;
+				new SpriteMapViewer(xT, yT, images, imgDimension);
+
+			}
+		});
 		controlsPanel.add(importDirButton);
 		controlsPanel.add(arrangeSpritemapsButton);
-		controlsPanel.add(compressButton);
-		controlsPanel.add(saveButton);
 		arrangeSpritemapsButton.setEnabled(false);
-		compressButton.setEnabled(false);
-		saveButton.setEnabled(false);
 		rightPanel.add(new JScrollPane(fileList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
 				BorderLayout.CENTER);
 		rightPanel.add(controlsPanel, BorderLayout.SOUTH);
