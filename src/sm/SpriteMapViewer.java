@@ -3,16 +3,21 @@ package sm;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.swing.DefaultListModel;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
@@ -42,7 +47,7 @@ public class SpriteMapViewer extends JFrame {
 				}
 			}
 		};
-	};
+	}, lowerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 	private ArrayList[] maps;
 
 	public SpriteMapViewer(int xT, int yT, ArrayList<BufferedImage> imgs, Dimension iDim) {
@@ -65,15 +70,57 @@ public class SpriteMapViewer extends JFrame {
 			}
 		});
 		add(view, BorderLayout.CENTER);
+		add(lowerPanel, BorderLayout.SOUTH);
+		lowerPanel.add(statusLabel);
+		lowerPanel.add(exportButton);
+		lowerPanel.add(compressButton);
+		exportButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				export();
+			}
+		});
 		setSize(imgDimension.width * xTiles + 50, imgDimension.height * yTiles + 70);
 		setTitle("Map View");
 		updateSelection(0);
 		setVisible(true);
 	}
 
+	private void export() {
+		JFileChooser jfc = new JFileChooser();
+		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		jfc.setDialogTitle("Select Directory to export into");
+		jfc.setApproveButtonText("Export");
+		jfc.showSaveDialog(SpriteMapViewer.this);
+		if (jfc.getSelectedFile() == null)
+			return;
+		int f = 0;
+		for (ArrayList<BufferedImage> map : maps) {
+			BufferedImage aImg = new BufferedImage(xTiles * imgDimension.width, yTiles * imgDimension.height, BufferedImage.TYPE_INT_ARGB);
+			Graphics g = aImg.getGraphics();
+			int row = 0, col = 0;
+			for (int i = 0; i < xTiles * yTiles; i++) {
+				g.drawImage(map.get(i), col * imgDimension.width, row * imgDimension.height, null);
+				if (col < xTiles - 1)
+					col++;
+				else {
+					row++;
+					col = 0;
+				}
+			}
+			try {
+				ImageIO.write(aImg, "png", new File(jfc.getSelectedFile().getAbsoluteFile() + "/" + f++ + ".png"));
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(SpriteMapViewer.this, "Export Error: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+	}
+
 	private void updateSelection(int selectedIndex) {
 		selected = selectedIndex;
 		view.repaint();
-		statusLabel.setText(selected + "/"+numMaps);
+		statusLabel.setText((1 + selected) + "/" + numMaps);
 	}
 }

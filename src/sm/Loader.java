@@ -142,7 +142,7 @@ public class Loader extends JFrame {
 				}
 				imgsPerLine = viewPanel.getWidth() / imgDimension.width;
 				System.out.println("Accepted " + images.size() + " images");
-				scrollbar.setMaximum(images.size() / imgsPerLine);
+				scrollbar.setMaximum(images.size() / imgsPerLine + viewPanel.getHeight() / imgDimension.height + 1);
 				System.out.println("images per line: " + imgsPerLine + "\tmaxscroll: " + scrollbar.getMaximum());
 				repaint();
 				arrangeSpritemapsButton.setEnabled(true);
@@ -171,7 +171,7 @@ public class Loader extends JFrame {
 				if (imgDimension == null)
 					return;
 				imgsPerLine = viewPanel.getWidth() / imgDimension.width;
-				scrollbar.setMaximum(images.size() / imgsPerLine);
+				scrollbar.setMaximum(images.size() / imgsPerLine + viewPanel.getHeight() / imgDimension.height + 1);
 				System.out.println("images per line: " + imgsPerLine + "\tmaxscroll: " + scrollbar.getMaximum());
 			}
 		});
@@ -187,7 +187,7 @@ public class Loader extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				SpriteMapArrangeDialog smad = new SpriteMapArrangeDialog(images.size());
-				int xT = smad.getXTiles(), yT = smad.getYTiles(), num = xT * yT;
+				int xT = smad.getXTiles(), yT = smad.getYTiles();
 				new SpriteMapViewer(xT, yT, images, imgDimension);
 
 			}
