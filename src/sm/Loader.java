@@ -37,7 +37,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 
-public class MainWindow extends JFrame {
+public class Loader extends JFrame {
 
 	private int selected = -1, margin = 5;
 	private JButton importDirButton = new JButton("Import Directory"), arrangeSpritemapsButton = new JButton("Arrange Spritemaps"),
@@ -78,7 +78,7 @@ public class MainWindow extends JFrame {
 	private JScrollBar scrollbar = new JScrollBar();
 	private Dimension imgDimension;
 
-	public MainWindow() {
+	public Loader() {
 		importDirButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -100,10 +100,10 @@ public class MainWindow extends JFrame {
 						return arg0.isDirectory();
 					}
 				});
-				jfc.showOpenDialog(MainWindow.this);
+				jfc.showOpenDialog(Loader.this);
 				File dir = jfc.getSelectedFile();
 				if (dir.listFiles().length == 0) {
-					JOptionPane.showMessageDialog(MainWindow.this, dir.getName() + " is empty");
+					JOptionPane.showMessageDialog(Loader.this, dir.getName() + " is empty");
 					return;
 				}
 				System.out.println("Found " + dir.listFiles().length + " files");
@@ -134,9 +134,9 @@ public class MainWindow extends JFrame {
 							dlm.addElement(f);
 							images.add(a);
 						} else
-							JOptionPane.showMessageDialog(MainWindow.this, f.getName() + " has the wrong resolution! " + aDim);
+							JOptionPane.showMessageDialog(Loader.this, f.getName() + " has the wrong resolution! " + aDim);
 					} catch (IOException e) {
-						JOptionPane.showMessageDialog(MainWindow.this, "Failed to read " + f.getName());
+						JOptionPane.showMessageDialog(Loader.this, "Failed to read " + f.getName());
 						return;
 
 					}
@@ -219,7 +219,7 @@ public class MainWindow extends JFrame {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		new MainWindow();
+		new Loader();
 	}
 
 }
