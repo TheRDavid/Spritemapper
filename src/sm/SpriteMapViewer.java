@@ -95,6 +95,11 @@ public class SpriteMapViewer extends JFrame {
 				jfc.showSaveDialog(SpriteMapViewer.this);
 				if (jfc.getSelectedFile() == null)
 					return;
+				if(numMaps == 1)
+				{
+					JOptionPane.showMessageDialog(SpriteMapViewer.this, "Can not merge less than 2 images (duh)");
+					return;
+				}
 				if (numMaps % 2 != 0)
 					JOptionPane.showMessageDialog(SpriteMapViewer.this, "Number of maps not even! The last Spritemap will be left out");
 				pd = new ProgressDialog("Exporting", "Exporting & Compressing", numMaps);

@@ -91,6 +91,7 @@ public class Loader extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				imgDimension = null; // reset
 				JFileChooser jfc = new JFileChooser();
 				jfc.setDialogTitle("Select Folder to import");
 				jfc.setApproveButtonText("Import");
