@@ -143,7 +143,7 @@ public class Loader extends JFrame {
 								Dimension aDim = new Dimension(a.getWidth(), a.getHeight());
 								if (imgDimension == null)
 									imgDimension = aDim;
-								else if (imgDimension.equals(aDim)) 
+								if (imgDimension.equals(aDim)) 
 									images.add(a);
 								else
 									JOptionPane.showMessageDialog(Loader.this, f.getName() + " has the wrong resolution! " + aDim);
